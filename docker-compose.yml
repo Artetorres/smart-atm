@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: smart-atm-db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-smart_atm}
+      POSTGRES_USER: ${DB_USER:-smartatm}
+      POSTGRES_PASSWORD: ${DB_PASS:?DB_PASS is required}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-smartatm} -d ${DB_NAME:-smart_atm}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: smart-atm-app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_USER: ${DB_USER:-smartatm}
+      DB_PASS: ${DB_PASS:?DB_PASS is required}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DB_NAME:-smart_atm}
+      OLLAMA_URL: http://host.docker.internal:11434
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:

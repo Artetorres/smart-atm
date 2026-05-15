@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: smart-atm
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/smart_atm
+    username: ${DB_USER:smartatm}
+    password: ${DB_PASS:smartatm123}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    defer-datasource-initialization: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  sql:
+    init:
+      mode: always
+
+  ai:
+    ollama:
+      base-url: ${OLLAMA_URL:http://localhost:11434}
+      chat:
+        model: llama3
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+
+logging:
+  level:
+    com.smartatm: DEBUG
+    org.springframework.web: INFO

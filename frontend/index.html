@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart ATM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0e0e10;
+      --surface: #18181b;
+      --surface-2: #242428;
+      --border: #2f2f35;
+      --text: #f5f5f4;
+      --text-dim: #a1a1aa;
+      --accent: #d4af37;
+      --success: #4ade80;
+      --danger: #f87171;
+      --mono: 'JetBrains Mono', ui-monospace, monospace;
+      --serif: 'Fraunces', Georgia, serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      min-height: 100vh;
+      padding: 2.5rem 1.5rem;
+      background-image:
+        radial-gradient(ellipse at top left, rgba(212, 175, 55, 0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at bottom right, rgba(74, 222, 128, 0.03) 0%, transparent 50%);
+    }
+
+    .container { max-width: 980px; margin: 0 auto; }
+
+    header { margin-bottom: 3rem; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; }
+    .logo { display: flex; align-items: baseline; gap: 0.75rem; }
+    .logo h1 {
+      font-family: var(--serif);
+      font-weight: 700;
+      font-size: 2.25rem;
+      letter-spacing: -0.02em;
+      font-style: italic;
+    }
+    .logo h1 .accent { color: var(--accent); }
+    .logo .tag {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+      padding: 0.25rem 0.5rem;
+    }
+    .subtitle {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      margin-top: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 1.75rem;
+      position: relative;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 32px;
+      height: 1px;
+      background: var(--accent);
+    }
+    .card h2 {
+      font-family: var(--serif);
+      font-weight: 600;
+      font-size: 1.25rem;
+      margin-bottom: 0.25rem;
+    }
+    .card .label {
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 0.5rem;
+    }
+    input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 0.75rem 0.85rem;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      transition: border-color 0.15s;
+      margin-bottom: 1rem;
+    }
+    input:focus { outline: none; border-color: var(--accent); }
+
+    .notes-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .note-input { text-align: center; }
+    .note-input .denom {
+      font-family: var(--serif);
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--accent);
+      margin-bottom: 0.4rem;
+    }
+    .note-input input { margin-bottom: 0; padding: 0.5rem; text-align: center; }
+
+    button {
+      width: 100%;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 0.85rem;
+      font-family: var(--mono);
+      font-weight: 600;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    button:hover { background: #e6c352; }
+    button:active { transform: translateY(1px); }
+    button.ghost {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    button.ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    .response {
+      margin-top: 1.25rem;
+      padding: 1rem;
+      background: var(--surface-2);
+      border-left: 2px solid var(--border);
+      font-size: 0.85rem;
+      display: none;
+    }
+    .response.show { display: block; }
+    .response.success { border-left-color: var(--success); }
+    .response.error { border-left-color: var(--danger); color: var(--danger); }
+    .response pre {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.5;
+    }
+
+    .summary-card { margin-top: 1.25rem; }
+    .summary-card .narrative {
+      font-family: var(--serif);
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: var(--text);
+      margin-top: 1.25rem;
+      padding-left: 1rem;
+      border-left: 2px solid var(--accent);
+      font-style: italic;
+    }
+    .summary-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-top: 1.25rem;
+    }
+    @media (max-width: 600px) { .summary-stats { grid-template-columns: repeat(2, 1fr); } }
+    .stat { background: var(--surface-2); padding: 0.85rem; }
+    .stat .stat-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 0.35rem;
+    }
+    .stat .stat-value {
+      font-family: var(--serif);
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+    }
+
+    .loader { display: inline-block; animation: pulse 1.2s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <header>
+      <div class="logo">
+        <h1>Smart<span class="accent">.</span>ATM</h1>
+        <span class="tag">v1.0</span>
+      </div>
+      <p class="subtitle">Caixa eletrônico inteligente · Inteligência artificial integrada</p>
+    </header>
+
+    <div class="grid">
+
+      <div class="card">
+        <h2>Saque</h2>
+        <div class="label">Withdraw operation</div>
+
+        <label for="w-userId">User ID</label>
+        <input id="w-userId" type="number" value="1" />
+
+        <label for="w-amount">Valor (R$)</label>
+        <input id="w-amount" type="number" placeholder="0" />
+
+        <button onclick="performWithdraw()">Sacar</button>
+
+        <div id="w-response" class="response"></div>
+      </div>
+
+      <div class="card">
+        <h2>Depósito</h2>
+        <div class="label">Deposit operation</div>
+
+        <label for="d-userId">User ID</label>
+        <input id="d-userId" type="number" value="1" />
+
+        <label>Notas</label>
+        <div class="notes-grid">
+          <div class="note-input"><div class="denom">R$ 50</div><input id="d-50" type="number" placeholder="0" min="0" /></div>
+          <div class="note-input"><div class="denom">R$ 10</div><input id="d-10" type="number" placeholder="0" min="0" /></div>
+          <div class="note-input"><div class="denom">R$ 5</div><input id="d-5" type="number" placeholder="0" min="0" /></div>
+          <div class="note-input"><div class="denom">R$ 2</div><input id="d-2" type="number" placeholder="0" min="0" /></div>
+        </div>
+
+        <button onclick="performDeposit()">Depositar</button>
+
+        <div id="d-response" class="response"></div>
+      </div>
+    </div>
+
+    <div class="card summary-card">
+      <h2>Resumo do dia</h2>
+      <div class="label">Daily AI-generated summary</div>
+
+      <button class="ghost" onclick="fetchDailySummary()">Gerar resumo</button>
+
+      <div id="s-response" class="response"></div>
+    </div>
+
+    <footer>
+      Smart ATM · Backend Kotlin · Spring Boot · PostgreSQL · IA
+    </footer>
+  </div>
+
+  <script>
+    const API = 'http://localhost:8080';
+
+    function showResponse(el, ok, content) {
+      el.className = 'response show ' + (ok ? 'success' : 'error');
+      el.innerHTML = content;
+    }
+
+    async function performWithdraw() {
+      const userId = parseInt(document.getElementById('w-userId').value);
+      const amount = parseInt(document.getElementById('w-amount').value);
+      const el = document.getElementById('w-response');
+
+      if (!userId || !amount) {
+        showResponse(el, false, 'Preencha User ID e valor.');
+        return;
+      }
+
+      el.className = 'response show';
+      el.innerHTML = '<span class="loader">Processando...</span>';
+
+      try {
+        const res = await fetch(API + '/withdraw', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, amount })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          const notes = Object.entries(data.notesDispensed)
+            .map(([d, q]) => `R$${d} × ${q}`)
+            .join('  ·  ');
+          showResponse(el, true, `<pre><strong>R$ ${data.amountWithdrawn} dispensado</strong>\n${notes}</pre>`);
+        } else {
+          showResponse(el, false, `<pre><strong>${data.error}</strong>\n${data.message}</pre>`);
+        }
+      } catch (e) {
+        showResponse(el, false, 'Erro de conexão: ' + e.message);
+      }
+    }
+
+    async function performDeposit() {
+      const userId = parseInt(document.getElementById('d-userId').value);
+      const notes = {};
+      [50, 10, 5, 2].forEach(d => {
+        const v = parseInt(document.getElementById('d-' + d).value);
+        if (v > 0) notes[d] = v;
+      });
+      const el = document.getElementById('d-response');
+
+      if (!userId || Object.keys(notes).length === 0) {
+        showResponse(el, false, 'Informe ao menos uma nota.');
+        return;
+      }
+
+      el.className = 'response show';
+      el.innerHTML = '<span class="loader">Processando...</span>';
+
+      try {
+        const res = await fetch(API + '/deposit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, notes })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showResponse(el, true, `<pre><strong>R$ ${data.amountDeposited} depositado</strong>\nNovo saldo: R$ ${data.newBalance}</pre>`);
+        } else {
+          showResponse(el, false, `<pre><strong>${data.error}</strong>\n${data.message}</pre>`);
+        }
+      } catch (e) {
+        showResponse(el, false, 'Erro de conexão: ' + e.message);
+      }
+    }
+
+    async function fetchDailySummary() {
+      const el = document.getElementById('s-response');
+      el.className = 'response show';
+      el.innerHTML = '<span class="loader">Consultando IA...</span>';
+
+      try {
+        const res = await fetch(API + '/daily-summary');
+        const data = await res.json();
+        if (res.ok) {
+          const inv = Object.entries(data.currentInventory)
+            .sort((a, b) => b[0] - a[0])
+            .map(([d, q]) => `R$${d}×${q}`)
+            .join(' · ');
+
+          el.innerHTML = `
+            <div class="summary-stats">
+              <div class="stat"><div class="stat-label">Saques</div><div class="stat-value">${data.totalWithdrawals}</div></div>
+              <div class="stat"><div class="stat-label">Depósitos</div><div class="stat-value">${data.totalDeposits}</div></div>
+              <div class="stat"><div class="stat-label">Movimentado</div><div class="stat-value">R$ ${data.totalAmountMoved}</div></div>
+              <div class="stat"><div class="stat-label">Estoque</div><div class="stat-value" style="font-size:0.85rem; font-family: var(--mono);">${inv}</div></div>
+            </div>
+            <div class="narrative">${data.aiSummary}</div>
+          `;
+        } else {
+          showResponse(el, false, `<pre>${data.message || 'Erro ao gerar resumo.'}</pre>`);
+        }
+      } catch (e) {
+        showResponse(el, false, 'Erro de conexão: ' + e.message);
+      }
+    }
+  </script>
+</body>
+</html>
